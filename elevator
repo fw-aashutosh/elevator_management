@@ -1,0 +1,81 @@
+class Elevator
+	attr_reader :current_floor, :direction, :id
+	def initialize(id)
+		@id = id
+		@current_floor = 0
+		@requests = []
+		@direction = :idle
+	end
+
+	def move_to(floor)
+		if floor > @current_floor
+			@direction = :up
+		elsif floor < @current_floor
+      		@direction = :down
+    	else
+      		@direction = :idle
+      	end
+			
+		@current_floor = floor
+		print "\nElevator #{@id} is at floor #{@current_floor}, direction: #{@direction}\n"
+	end
+
+	def add_request(floor)
+		@requests.append(floor)
+		self.sort_requests
+	end
+
+	def process_requests
+		while @requests.length > 0
+			next_request = @requests.shift()
+			
+			self.move_to(next_request)
+		end
+		@direction = :idle
+	end
+
+	def sort_requests
+		if @direction == :up
+			@requests.sort { |a, b| a <=> b }
+		elsif @direction == :down
+			@requests.sort { |a, b| b <=> a }
+		end
+	end
+end
+
+class ElevatorSystem
+
+	def initialize(elevator_count)
+		@elevators = Array.new(elevator_count) { |i| Elevator.new(i + 1) }
+
+	end
+
+	def request_elevator(requested_floor)
+		elevator = get_nearest_elevator(requested_floor)
+		elevator.add_request(requested_floor)
+		elevator.process_requests
+	end
+
+	def get_nearest_elevator(requested_floor)
+		@elevators.min_by do |elevator|
+      		(elevator.current_floor - requested_floor).abs
+		end
+	end
+
+	def status
+		@elevators.each do |elevator|
+			print "\nElevator #{elevator.id} is at floor #{elevator.current_floor}, direction: #{elevator.direction}"
+		end
+	end
+end
+
+
+system = ElevatorSystem.new(3)
+
+system.request_elevator(7)
+system.request_elevator(8)
+system.request_elevator(3)
+system.request_elevator(1)
+
+# Print current status
+system.status
